@@ -1,12 +1,19 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import os
+from dotenv import load_dotenv
 import json
+
+# 加载环境变量
+load_dotenv()
 
 app = Flask(__name__)
 
 # GLM-4 API配置
-API_KEY = "03485d6a51f84ed38c0d34dd6ace1cae.2VbaPhSgwV6L2LX9"
+API_KEY = os.getenv('GLM_API_KEY')
+if not API_KEY:
+    raise ValueError("请设置环境变量GLM_API_KEY")
+
 API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
 def generate_prompt(identity, emotion, length, style):
