@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红包感谢语生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #ff4d4d;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .options-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .option-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+        .option-btn.active {
+            background-color: #ff4d4d;
+            color: white;
+            border-color: #ff4d4d;
+        }
+        .custom-input {
+            display: none;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .generate-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .generate-btn:hover {
+            background-color: #ff3333;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .hidden-textarea {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+        .copy-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+        .copy-btn:hover {
+            background-color: #ff3333;
+        }
+        .copy-success {
+            background-color: #4CAF50 !important;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>红包感谢语生成器</h1>
+        <div class="subtitle">一键生成暖心的红包感谢语——Made By JOBO</div>
+        
+        <div class="form-group">
+            <label>发送者身份</label>
+            <select id="identity">
+                <option value="平辈">平辈</option>
+                <option value="晚辈">晚辈</option>
+                <option value="长辈">长辈</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="text" id="customIdentity" placeholder="请输入自定义身份" style="display: none; margin-top: 10px;">
+        </div>
+
+        <div class="form-group">
+            <label>情感基调</label>
+            <div class="options-container emotion-options">
+                <div class="option-btn active" data-value="正式">正式</div>
+                <div class="option-btn" data-value="幽默">幽默</div>
+                <div class="option-btn" data-value="温馨">温馨</div>
+                <div class="option-btn" data-value="custom">自定义...</div>
+            </div>
+            <input type="text" class="custom-input" id="customEmotion" placeholder="请输入自定义情感基调">
+        </div>
+
+        <div class="form-group">
+            <label>输出长度</label>
+            <div class="options-container length-options">
+                <div class="option-btn active" data-value="简短">简短</div>
+                <div class="option-btn" data-value="适中">适中</div>
+                <div class="option-btn" data-value="详细">详细</div>
+                <div class="option-btn" data-value="custom">自定义...</div>
+            </div>
+            <input type="text" class="custom-input" id="customLength" placeholder="请输入自定义长度要求">
+        </div>
+
+        <div class="form-group">
+            <label>表达风格</label>
+            <div class="options-container style-options">
+                <div class="option-btn" data-value="商务正式">商务正式</div>
+                <div class="option-btn active" data-value="现代简约">现代简约</div>
+                <div class="option-btn" data-value="俏皮可爱">俏皮可爱</div>
+                <div class="option-btn" data-value="文言典雅">文言典雅</div>
+                <div class="option-btn" data-value="custom">自定义...</div>
+            </div>
+            <input type="text" class="custom-input" id="customStyle" placeholder="请输入自定义表达风格">
+        </div>
+
+        <button class="generate-btn">生成感谢语</button>
+
+        <div class="loading">正在生成中...</div>
+        <div class="result">
+            <div class="result-text"></div>
+            <textarea class="hidden-textarea"></textarea>
+            <button class="copy-btn">复制文本</button>
+        </div>
+    </div>
+
+    <script>
+        // 身份选择逻辑
+        const identitySelect = document.getElementById('identity');
+        const customIdentityInput = document.getElementById('customIdentity');
+        
+        identitySelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customIdentityInput.style.display = 'block';
+            } else {
+                customIdentityInput.style.display = 'none';
+            }
+        });
+
+        // 选项按钮通用逻辑
+        function setupOptionButtons(containerClass) {
+            const container = document.querySelector(`.${containerClass}`);
+            const buttons = container.querySelectorAll('.option-btn');
+            const customInput = container.nextElementSibling;
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.dataset.value === 'custom') {
+                        customInput.style.display = 'block';
+                    } else {
+                        customInput.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // 设置所有选项组的点击事件
+        setupOptionButtons('emotion-options');
+        setupOptionButtons('length-options');
+        setupOptionButtons('style-options');
+
+        // 生成感谢语
+        const generateBtn = document.querySelector('.generate-btn');
+        const loadingDiv = document.querySelector('.loading');
+        const resultDiv = document.querySelector('.result');
+        const resultText = document.querySelector('.result-text');
+        const copyBtn = document.querySelector('.copy-btn');
+
+        // 复制功能
+        copyBtn.addEventListener('click', function() {
+            const textArea = document.querySelector('.hidden-textarea');
+            textArea.value = resultText.textContent;
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                copyBtn.textContent = '复制成功！';
+                copyBtn.classList.add('copy-success');
+                setTimeout(() => {
+                    copyBtn.textContent = '复制文本';
+                    copyBtn.classList.remove('copy-success');
+                }, 2000);
+            } catch (err) {
+                // 如果execCommand失败，尝试使用clipboard API
+                navigator.clipboard.writeText(resultText.textContent).then(() => {
+                    copyBtn.textContent = '复制成功！';
+                    copyBtn.classList.add('copy-success');
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制文本';
+                        copyBtn.classList.remove('copy-success');
+                    }, 2000);
+                }).catch(() => {
+                    alert('复制失败，请手动复制');
+                });
+            }
+        });
+
+        generateBtn.addEventListener('click', async function() {
+            // 获取身份
+            const identity = identitySelect.value === 'custom' ? customIdentityInput.value : identitySelect.value;
+            
+            // 获取情感基调
+            const emotionBtn = document.querySelector('.emotion-options .option-btn.active');
+            const emotion = emotionBtn.dataset.value === 'custom' ? 
+                document.getElementById('customEmotion').value : emotionBtn.dataset.value;
+            
+            // 获取输出长度
+            const lengthBtn = document.querySelector('.length-options .option-btn.active');
+            const length = lengthBtn.dataset.value === 'custom' ? 
+                document.getElementById('customLength').value : lengthBtn.dataset.value;
+            
+            // 获取表达风格
+            const styleBtn = document.querySelector('.style-options .option-btn.active');
+            const style = styleBtn.dataset.value === 'custom' ? 
+                document.getElementById('customStyle').value : styleBtn.dataset.value;
+
+            // 验证必填项
+            if (identitySelect.value === 'custom' && !customIdentityInput.value.trim()) {
+                alert('请输入自定义身份');
+                return;
+            }
+            if (emotionBtn.dataset.value === 'custom' && !document.getElementById('customEmotion').value.trim()) {
+                alert('请输入自定义情感基调');
+                return;
+            }
+            if (lengthBtn.dataset.value === 'custom' && !document.getElementById('customLength').value.trim()) {
+                alert('请输入自定义输出长度');
+                return;
+            }
+            if (styleBtn.dataset.value === 'custom' && !document.getElementById('customStyle').value.trim()) {
+                alert('请输入自定义表达风格');
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            resultText.textContent = '';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        identity,
+                        emotion,
+                        length,
+                        style
+                    })
+                });
+
+                const data = await response.json();
+                resultText.textContent = data.result;
+                copyBtn.style.display = 'block';  // 显示复制按钮
+            } catch (error) {
+                resultText.textContent = '生成失败，请稍后重试';
+                copyBtn.style.display = 'none';  // 隐藏复制按钮
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
